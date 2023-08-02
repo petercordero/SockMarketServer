@@ -3,11 +3,8 @@ var router = express.Router();
 
 const bcrypt = require("bcryptjs");
 const jwt = require("jsonwebtoken");
-
 const isAuthenticated = require("../middleware/isAuthenticated");
-
 const User = require("../models/User");
-
 const saltRounds = 10;
 
 

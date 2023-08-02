@@ -5,8 +5,6 @@ const User = require('../models/User');
 const isAuthenticated = require('../middleware/isAuthenticated');
 const isProfileOwner = require('../middleware/isProfileOwner');
 
-
-/* GET users listing. */
 router.get('/user-detail/:userId', (req, res, next) => {
     const { userId } = req.params
 

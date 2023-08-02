@@ -3,10 +3,10 @@ var router = express.Router();
 
 const Sock = require('../models/Sock');
 const User = require('../models/User');
+const Comment = require('../models/Comment')
 const isAuthenticated = require('../middleware/isAuthenticated')
 const isSockOwner = require('../middleware/isSockOwner')
 
-/* GET home page. */
 router.get('/', (req, res, next) => {
   Sock.find()
   .then((allSocks) => {
@@ -40,16 +40,22 @@ router.post('/new-sock', isAuthenticated, (req, res, next) => {
 })
 
 router.get('/sock-detail/:sockId', (req, res, next) => {
+
     const { sockId } = req.params
 
     Sock.findById(sockId)
-    .then((foundSock) => {
-        res.json(foundSock)
-    })
-    .catch((err) => {
-        console.log(err)
-        next(err)
-    })
+        .populate({
+            path: 'comments',
+            populate: { path: 'author'}
+        })
+        .then((foundSock) => {
+            res.json(foundSock)
+        })
+        .catch((err) => {
+            console.log(err)
+            next(err)
+        })
+
 })
 
 router.post('/sock-update/:sockId', isAuthenticated, isSockOwner, (req, res, next) => {
@@ -84,4 +90,40 @@ router.post('/delete-sock/:sockId', isAuthenticated, isSockOwner, (req, res, nex
         next(err)
     })
 })
+
+router.post('/add-comment/:sockId', isAuthenticated, (req, res, next) => {
+
+    Comment.create({
+        author: req.user._id,
+        comment: req.body.comment
+    })
+        .then((createdComment) => {
+
+            Sock.findByIdAndUpdate(
+                req.params.sockId,
+                {
+                    $push: {comments: createdComment._id}
+                }
+            )
+            .populate({
+                path: 'comments',
+                populate: { path: 'author'}
+            })
+            .then((updatedSock) => {
+                res.json(updatedSock)
+            })
+            .catch((err) => {
+                console.log(err)
+                next(err)
+            })
+
+        })
+        .catch((err) => {
+            console.log(err)
+            next(err)
+        })
+
+})
+
+
 module.exports = router;
